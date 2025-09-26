@@ -1,0 +1,21 @@
+目标：Go 管理端服务结构导读。
+
+1) 目录
+- api/: 控制器与处理器（HTTP 层）
+- config/: 配置结构体与加载
+- core/: 启动、日志、Zap、Viper 等
+- global/: 全局对象/依赖
+- initialize/: 初始化数据库、路由、中间件
+- middleware/: 中间件（鉴权、跨域、限流）
+- model/: 领域模型与 ORM
+- plugin/: 可选插件
+- resource/: 模板与代码生成
+- router/: 路由分发表
+- service/: 业务逻辑
+- source/: 初始化数据/种子
+- task/、corn/: 定时/异步任务
+- docs/: Swagger/文档
+
+2) 阅读顺序
+- main.go -> initialize -> router -> api -> service -> model
+

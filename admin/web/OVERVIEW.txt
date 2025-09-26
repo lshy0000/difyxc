@@ -1,0 +1,10 @@
+目标：Vue 管理端前端结构导读。
+
+1) 关键文件
+- src/: 视图、组件、store、api 封装
+- vite.config.js / tailwind.config.js: 工程与样式
+- public/: 静态资源
+
+2) 阅读顺序
+- 从 src/views 与 src/router 入手，关注对后端 server 的接口调用
+

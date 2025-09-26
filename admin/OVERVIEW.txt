@@ -1,0 +1,15 @@
+目标：理解 admin 管理端的组成与职责边界。
+
+1) 结构
+- server/: Go 服务端（API、路由、中间件、数据模型、任务）
+- web/: Vue 前端（Vite 构建，视图与交互）
+- deploy/: 部署模板（docker/k8s）
+- docs/: 说明资源
+
+2) 推荐阅读
+- 先看 server 的 router/ 与 api/，理解接口边界
+- 再看 web/src 下的页面与请求封装
+
+3) 与主后端关系
+- 面向管理与运维场景，功能与主后端的 console 互补
+

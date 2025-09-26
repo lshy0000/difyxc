@@ -1,0 +1,13 @@
+目标：理解 docker/ 下的部署编排与模板。
+
+1) 主要文件
+- docker-compose*.yaml: 多场景编排模板
+- nginx/*: 前端反向代理模板
+- certbot/、pgvector/、ssrf_proxy/、tidb/: 可选组件
+- volumes/: 示例挂载/持久化
+- startupscripts/: 启动脚本
+
+2) 使用建议
+- 从 docker-compose.yaml 与 middleware.env.example 入手
+- 根据环境裁剪组件并添加自定义服务
+

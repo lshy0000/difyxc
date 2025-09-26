@@ -1,0 +1,12 @@
+目标：理解前端（Next.js/TS）的结构与与后端协作点。
+
+1) 主要目录
+- app/: 页面与路由
+- service/: 请求层，对应后端 controllers/service_api
+- i18n/: 多语言
+- hooks/、utils/: 复用逻辑
+- public/: 静态资源
+
+2) 阅读顺序
+- 从 app/ 关键业务页面入手 -> 追踪其 service/* 请求 -> 对应后端接口
+

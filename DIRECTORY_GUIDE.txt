@@ -1,0 +1,28 @@
+目的：帮助快速理解 xc 三创工程的整体目录与原型来源。
+
+1) 根目录要点
+- README*.md: 多语言/项目说明
+- Makefile / dev/*: 开发与工具脚本
+- docker/*: 运行与部署编排
+- images/*: 资源示意
+- sdks/*: SDK 汇总
+- api/: Python 后端（基于 dify/二创演进）
+- web/: 前端（Next.js/TypeScript，或与二创保持一致）
+- admin/: 管理端（Go + Vue 二创体系）
+
+2) 与上游/二创的关系
+- 在 dify 能力基础上，融合 difyplus 的二创成果
+- 在不改动上游核心的前提下进行三创：优先扩展、旁路、特性开关
+
+3) 推荐阅读顺序
+- 先读本文件 -> 各子目录 OVERVIEW.txt -> 关键模块源码
+- 后端：api/controllers -> services -> core（workflow/rag/model_runtime）
+- 前端：web/app 页面 -> web/service 请求 -> 对应后端接口
+- 管理端：admin/server（Go）与 admin/web（Vue）各自 OVERVIEW
+
+4) 运行与环境
+- docker/docker-compose*.yaml: 参考编排
+- dev/*: 本地启动/校验脚本
+
+注：本文件为高层导读，细节以子目录 OVERVIEW 与源码为准。
+

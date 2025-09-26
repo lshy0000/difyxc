@@ -1,0 +1,9 @@
+目标：理解本地开发工具与脚本用途。
+
+1) 常见脚本
+- reformat / run-mypy / sync-poetry / update-poetry: 依赖与检查
+- pytest/*: 测试脚本
+
+2) 建议
+- 修改后端/前端前先跑静态检查与单测，保持一致性
+

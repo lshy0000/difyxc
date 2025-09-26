@@ -1,0 +1,10 @@
+目标：各语言 SDK 汇总与入口。
+
+1) 子目录
+- nodejs-client/
+- python-client/
+- php-client/
+
+2) 建议
+- 统一在 README 中声明支持与版本，示例代码与发布流程
+

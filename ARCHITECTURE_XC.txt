@@ -1,0 +1,26 @@
+主题：xc 三创的整体架构与边界。
+
+1) 架构分层
+- 前端（web/）：Next.js 应用，为控制台与应用编排提供 UI
+- 后端（api/）：Python 服务，承载工作流、RAG、模型适配与业务服务
+- 管理端（admin/）：独立的 Go + Vue 体系，面向运维/治理
+
+2) 关键能力聚合
+- 工作流（api/core/workflow）：可编排节点、执行与观测
+- RAG（api/core/rag）：数据集、分块、向量化、检索与评估
+- 模型适配（api/core/model_runtime）：多供应商统一调用
+- 业务服务（api/services）：租户、权限、计费、应用/数据集管理
+
+3) 扩展策略（三创原则）
+- 优先扩展点与插件，不入侵上游核心
+- 配置隔离（feature flags / env）与旁路适配
+- 差异记录（与二创/上游差异清单）便于升级
+
+4) 典型调用链
+- web/service -> api/controllers/service_api -> api/services -> api/core/*
+- admin/web -> admin/server/router -> admin/server/service -> admin/server/model
+
+5) 运维与部署
+- docker/* 提供多环境编排模板
+- 日志/指标/追踪：沿用后端/前端既有方案
+
