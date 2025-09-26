@@ -69,6 +69,16 @@ class BaseNode(Generic[GenericNodeData]):
 
     def run(self) -> Generator[Union[NodeEvent, "InNodeEvent"], None, None]:
         try:
+            if hasattr(self, "graph_runtime_state") and getattr(self, "graph_runtime_state", None) is not None:
+                # 仅在开关开启时输出详细日志
+                from configs import dify_config  # local import to avoid cycles
+                if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                    logger.info(
+                        "base_node.run: node_id=%s type=%s prev=%s",
+                        self.node_id,
+                        self.node_type.value,
+                        self.previous_node_id,
+                    )
             result = self._run()
         except Exception as e:
             logger.exception(f"Node {self.node_id} failed to run")
@@ -79,6 +89,14 @@ class BaseNode(Generic[GenericNodeData]):
             )
 
         if isinstance(result, NodeRunResult):
+            from configs import dify_config  # local import to avoid cycles
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                logger.info(
+                    "base_node.completed: node_id=%s type=%s status=%s",
+                    self.node_id,
+                    self.node_type.value,
+                    result.status.value,
+                )
             yield RunCompletedEvent(run_result=result)
         else:
             yield from result

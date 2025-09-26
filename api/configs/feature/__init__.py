@@ -439,6 +439,11 @@ class LoggingConfig(BaseSettings):
         default="UTC",
     )
 
+    WORKFLOW_VERBOSE_LOG_ENABLED: bool = Field(
+        description="Enable verbose logs for workflow, nodes and code execution",
+        default=False,
+    )
+
 
 class ModelLoadBalanceConfig(BaseSettings):
     """

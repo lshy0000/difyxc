@@ -145,6 +145,14 @@ class GraphEngine:
 
     def run(self) -> Generator[GraphEngineEvent, None, None]:
         # trigger graph run start event
+        if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+            logger.info(
+                "graph.run start: workflow_id=%s app_id=%s tenant_id=%s start_node=%s",
+                self.init_params.workflow_id,
+                self.init_params.app_id,
+                self.init_params.tenant_id,
+                self.graph.root_node_id,
+            )
         yield GraphRunStartedEvent()
         handle_exceptions: list[str] = []
         stream_processor: StreamProcessor
@@ -165,6 +173,8 @@ class GraphEngine:
             )
             for item in generator:
                 try:
+                    if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                        logger.debug("graph.event: %s", type(item).__name__)
                     yield item
                     if isinstance(item, NodeRunFailedEvent):
                         yield GraphRunFailedEvent(
@@ -286,6 +296,15 @@ class GraphEngine:
                 )
 
                 for item in generator:
+                    if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED and isinstance(item, NodeRunStartedEvent):
+                        logger.info(
+                            "node.start: id=%s node_id=%s type=%s predecessor=%s parallel_id=%s",
+                            item.id,
+                            item.node_id,
+                            item.node_type.value,
+                            item.predecessor_node_id,
+                            item.parallel_id,
+                        )
                     if isinstance(item, NodeRunStartedEvent):
                         self.graph_runtime_state.node_run_steps += 1
                         item.route_node_state.index = self.graph_runtime_state.node_run_steps
@@ -314,6 +333,13 @@ class GraphEngine:
                     parent_parallel_id=parent_parallel_id,
                     parent_parallel_start_node_id=parent_parallel_start_node_id,
                 )
+                if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                    logger.error(
+                        "node.failed: node_id=%s type=%s error=%s",
+                        next_node_id,
+                        node_type.value,
+                        str(e),
+                    )
                 raise e
 
             # It may not be necessary, but it is necessary. :)
@@ -506,11 +532,26 @@ class GraphEngine:
                 if not isinstance(event, BaseAgentEvent) and event.parallel_id == parallel_id:
                     if isinstance(event, ParallelBranchRunSucceededEvent):
                         succeeded_count += 1
+                        if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                            logger.info(
+                                "parallel.branch.succeeded: parallel_id=%s start_node=%s succeeded=%s/%s",
+                                parallel_id,
+                                parallel_start_node_id,
+                                succeeded_count,
+                                len(futures),
+                            )
                         if succeeded_count == len(futures):
                             q.put(None)
 
                         continue
                     elif isinstance(event, ParallelBranchRunFailedEvent):
+                        if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                            logger.error(
+                                "parallel.branch.failed: parallel_id=%s start_node=%s error=%s",
+                                parallel_id,
+                                parallel_start_node_id,
+                                event.error,
+                            )
                         raise GraphRunFailedError(event.error)
             except queue.Empty:
                 continue
@@ -550,6 +591,12 @@ class GraphEngine:
                         parent_parallel_start_node_id=parent_parallel_start_node_id,
                     )
                 )
+                if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                    logger.info(
+                        "parallel.branch.start: parallel_id=%s start_node=%s",
+                        parallel_id,
+                        parallel_start_node_id,
+                    )
 
                 # run node
                 generator = self._run(
@@ -572,6 +619,12 @@ class GraphEngine:
                         parent_parallel_start_node_id=parent_parallel_start_node_id,
                     )
                 )
+                if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                    logger.info(
+                        "parallel.branch.finish: parallel_id=%s start_node=%s",
+                        parallel_id,
+                        parallel_start_node_id,
+                    )
             except GraphRunFailedError as e:
                 q.put(
                     ParallelBranchRunFailedEvent(
@@ -689,6 +742,14 @@ class GraphEngine:
                                         retry_index=retries,
                                         start_at=retry_start_at,
                                     )
+                                    if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                                        logger.warning(
+                                            "node.retry: node_id=%s retry_index=%s interval=%ss error=%s",
+                                            node_instance.node_id,
+                                            retries,
+                                            retry_interval,
+                                            run_result.error or "",
+                                        )
                                     time.sleep(retry_interval)
                                     break
                             route_node_state.set_finished(run_result=run_result)

@@ -1,4 +1,5 @@
 from collections.abc import Mapping, Sequence
+import logging
 from typing import Any, Optional
 
 from configs import dify_config
@@ -19,6 +20,9 @@ from .exc import (
     DepthLimitError,
     OutputValidationError,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class CodeNode(BaseNode[CodeNodeData]):
@@ -60,6 +64,14 @@ class CodeNode(BaseNode[CodeNodeData]):
             # Extend: Start Adding execution control logic
             purview = ExecutionControl().check_code(tenant_id=self.tenant_id)
             # Extend: Stop Adding execution control logic
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                preview_inputs = {k: (type(v).__name__ if isinstance(v, dict | list) else v) for k, v in variables.items()}
+                logger.info(
+                    "code_node.execute: node_id=%s lang=%s inputs_preview=%s",
+                    self.node_id,
+                    code_language.value,
+                    preview_inputs,
+                )
             result = CodeExecutor.execute_workflow_code_template(
                 language=code_language,
                 code=code,
@@ -70,10 +82,25 @@ class CodeNode(BaseNode[CodeNodeData]):
             # Transform result
             result = self._transform_result(result=result, output_schema=self.node_data.outputs)
         except (CodeExecutionError, CodeNodeError) as e:
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                logger.error(
+                    "code_node.error: node_id=%s lang=%s error=%s",
+                    self.node_id,
+                    code_language.value,
+                    str(e),
+                )
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED, inputs=variables, error=str(e), error_type=type(e).__name__
             )
 
+        if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+            preview_outputs = {k: (type(v).__name__ if isinstance(v, dict | list) else v) for k, v in result.items()}
+            logger.info(
+                "code_node.succeeded: node_id=%s lang=%s outputs_preview=%s",
+                self.node_id,
+                code_language.value,
+                preview_outputs,
+            )
         return NodeRunResult(status=WorkflowNodeExecutionStatus.SUCCEEDED, inputs=variables, outputs=result)
 
     def _check_string(self, value: str | None, variable: str) -> str | None:

@@ -5,6 +5,7 @@ from threading import Lock
 from typing import Any, Optional
 
 from httpx import Timeout, post
+import time
 from pydantic import BaseModel
 from yarl import URL
 
@@ -77,6 +78,7 @@ class CodeExecutor:
         }
 
         try:
+            start_ts = time.perf_counter()
             response = post(
                 str(url),
                 json=data,
@@ -88,6 +90,11 @@ class CodeExecutor:
                     pool=None,
                 ),
             )
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                duration_ms = int((time.perf_counter() - start_ts) * 1000)
+                logger.info(
+                    "code_executor.request: url=%s status=%s duration_ms=%s", str(url), response.status_code, duration_ms
+                )
             if response.status_code == 503:
                 raise CodeExecutionError("Code execution service is unavailable")
             elif response.status_code != 200:
@@ -110,6 +117,13 @@ class CodeExecutor:
             raise CodeExecutionError("Failed to parse response")
 
         if (code := response_data.get("code")) != 0:
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                logger.error(
+                    "code_executor.response_error: url=%s code=%s message=%s",
+                    str(url),
+                    code,
+                    response_data.get("message"),
+                )
             raise CodeExecutionError(f"Got error code: {code}. Got error msg: {response_data.get('message')}")
 
         response_code = CodeExecutionResponse(**response_data)

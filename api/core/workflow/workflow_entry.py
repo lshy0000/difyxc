@@ -93,11 +93,22 @@ class WorkflowEntry:
         :param callbacks: workflow callbacks
         """
         graph_engine = self.graph_engine
+        if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+            logger.info(
+                "workflow.run start: workflow_id=%s app_id=%s tenant_id=%s user_id=%s call_depth=%s",
+                graph_engine.init_params.workflow_id,
+                graph_engine.init_params.app_id,
+                graph_engine.init_params.tenant_id,
+                graph_engine.init_params.user_id,
+                graph_engine.init_params.call_depth,
+            )
 
         try:
             # run workflow
             generator = graph_engine.run()
             for event in generator:
+                if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                    logger.debug("workflow.event: %s", type(event).__name__)
                 if callbacks:
                     for callback in callbacks:
                         callback.on_event(event=event)
@@ -189,6 +200,13 @@ class WorkflowEntry:
         )
         try:
             # run node
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                logger.info(
+                    "single_step_run: node_id=%s type=%s user_id=%s",
+                    node_id,
+                    node_type.value,
+                    user_id,
+                )
             generator = node_instance.run()
         except Exception as e:
             raise WorkflowNodeRunFailedError(node_instance=node_instance, error=str(e))
@@ -289,6 +307,13 @@ class WorkflowEntry:
             )
 
             # run node
+            if dify_config.WORKFLOW_VERBOSE_LOG_ENABLED:
+                logger.info(
+                    "run_free_node: node_id=%s type=%s user_id=%s",
+                    node_id,
+                    node_type.value,
+                    user_id,
+                )
             generator = node_instance.run()
 
             return node_instance, generator
